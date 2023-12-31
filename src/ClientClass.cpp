@@ -24,15 +24,26 @@ void ClientClass::connect_and_run() {
   server_address.sin_addr.s_addr = INADDR_ANY;
   server_address.sin_port = htons(PORT);
 
-  // Initiate a socket connection
   int connection_status = connect(network_socket, (struct sockaddr*)&server_address, sizeof(server_address));
-
-  // Check for connection error
   if (connection_status < 0) {
     throw std::runtime_error("Cannot connect to server");
     return;
   }
 
+  // Get new port
+  int new_port;
+  recv(network_socket, &new_port, sizeof(new_port), 0);
+  printf("New Port: %d\n", new_port);
+
+  // Close old connection and start new one
+  close(network_socket);
+
+  int new_network_socket = socket(AF_INET, SOCK_STREAM, 0);
+  server_address.sin_port = htons(new_port);
+  connection_status = connect(new_network_socket, (struct sockaddr*)&server_address, sizeof(server_address));
+  if (connection_status < 0) {
+    perror("Cannot connect to server");
+  }
   printf("Connection established\n");
 
   while (1) {
@@ -41,7 +52,7 @@ void ClientClass::connect_and_run() {
     std::getline(std::cin, buffer);
     if (!strcmp("exit", buffer.data()))
       break;
-    send(network_socket, buffer.data(), size(buffer), 0);
+    send(new_network_socket, buffer.data(), size(buffer), 0);
   }
 
   // Close the connection
