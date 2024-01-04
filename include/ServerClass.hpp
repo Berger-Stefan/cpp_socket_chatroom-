@@ -1,8 +1,9 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <stdio.h>
+#include <memory>
 #include <mongocxx/collection.hpp>
+#include <mongocxx/database.hpp>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -15,10 +16,6 @@
 #include <mongocxx/uri.hpp>
 
 #define LOGIN_PORT 8888
-
-using bsoncxx::builder::basic::kvp;
-using bsoncxx::builder::basic::make_array;
-using bsoncxx::builder::basic::make_document;
 
 struct FreePorts {
   std::vector<std::pair<const unsigned int, bool>> ports;
@@ -59,7 +56,7 @@ struct FreePorts {
         return;
       }
     }
-    throw std::runtime_error("Cannot find port to occupy");
+    throw std::runtime_error("Cannot find port to free");
   }
 };
 
@@ -70,13 +67,12 @@ class ServerClass {
   struct sockaddr_storage serverStorage;
   socklen_t addr_size;
   FreePorts free_ports;
-
-  mongocxx::instance instance{};  // This should be done only once.
-  mongocxx::client client{mongocxx::uri{}};
-  mongocxx::database db = client["cpp_chatroom"];
-  mongocxx::collection collection = db["accounts"];
-
+  mongocxx::database& db;
+  mongocxx::collection db_accounts = db["accounts"];
   std::vector<std::thread> client_vector;
+
+  ServerClass(mongocxx::database& db):  db(db){}
+
 
   int init();
   int listen_for_connections();

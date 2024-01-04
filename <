@@ -46,35 +46,33 @@ void ClientClass::connect_and_run() {
   }
   printf("Connection established\n");
 
+
   // User authentification
   char input_buffer[1000];
   std::string buffer;
 
   // Username
   recv(new_network_socket, &input_buffer, sizeof(input_buffer), 0);
-  printf("%s", input_buffer);
+  printf("%s",input_buffer);
   memset(&input_buffer[0], 0, sizeof(input_buffer));
   std::getline(std::cin, buffer);
   send(new_network_socket, buffer.data(), size(buffer), 0);
 
   // Password
   recv(new_network_socket, &input_buffer, sizeof(input_buffer), 0);
-  printf("%s", input_buffer);
+  printf("%s",input_buffer);
   memset(&input_buffer[0], 0, sizeof(input_buffer));
   std::getline(std::cin, buffer);
   send(new_network_socket, buffer.data(), size(buffer), 0);
 
   // Server response
   recv(new_network_socket, &input_buffer, sizeof(input_buffer), 0);
-  printf("%s", input_buffer);
+  printf("%s",input_buffer);
   memset(&input_buffer[0], 0, sizeof(input_buffer));
   int error_code;
-  socklen_t error_code_size = sizeof(error_code);
-  int result = getsockopt(new_network_socket, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size);
-  if (result != 0 && error_code != 0){
-    close(new_network_socket);
-    return;
-  }
+socklen_t error_code_size = sizeof(error_code);
+  int result = getsockopt(socket_fd, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size);
+
 
   while (1) {
     printf("Input:\t");

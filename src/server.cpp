@@ -1,6 +1,14 @@
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <memory>
 #include <thread>
+
+#include <bsoncxx/builder/basic/document.hpp>
+#include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/instance.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
 
 #include "../include/ServerClass.hpp"
 
@@ -9,7 +17,11 @@
 struct Client {};
 
 int server_thread() {
-  ServerClass server;
+  mongocxx::client client{mongocxx::uri{}};
+  mongocxx::database db = client["cpp_chatroom"];
+  mongocxx::collection collection = db["accounts"];
+
+  ServerClass server(db);
 
   if (server.init() != 0)
     perror("Cannot init server");
@@ -20,6 +32,10 @@ int server_thread() {
 }
 
 int main(int argc, char* argv[]) {
+
+  mongocxx::instance instance{};  // This should be done only once.
+  
+
   std::thread t(server_thread);
 
   t.join();
